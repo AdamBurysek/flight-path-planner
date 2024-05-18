@@ -5,7 +5,7 @@ import TileLayer from 'ol/layer/Tile'
 import XYZ from 'ol/source/XYZ'
 import 'ol/ol.css'
 import { fromLonLat } from 'ol/proj'
-import { Draw } from 'ol/interaction'
+import { Draw, Modify, Select } from 'ol/interaction'
 import VectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
 import { Style, Stroke } from 'ol/style'
@@ -14,13 +14,19 @@ import LineString from 'ol/geom/LineString'
 import Overlay from 'ol/Overlay'
 import { Coordinate } from 'ol/coordinate'
 import { calculateAzimuth, calculateDistance } from './utils/calculations'
+import ButtonContainer from './components/ButtonContainer/ButtonContainer'
+import ResultsContainer from './components/ResultsContainer/ResultsContainer'
+import MapLayer from './components/MapLayer/MapLayer'
 
 function App() {
   const mapRef = useRef<Map | null>(null)
   const drawRef = useRef<Draw | null>(null)
+  const modifyRef = useRef<Modify | null>(null)
+  const selectRef = useRef<Select | null>(null)
   const vectorSourceRef = useRef<VectorSource | null>(null)
   const [totalLength, setTotalLength] = useState<number>(0)
   const [azimuths, setAzimuths] = useState<string[][]>([])
+  const [isEditing, setIsEditing] = useState<boolean>(false)
   const [overlayElement, setOverlayElement] = useState<HTMLDivElement | null>(null)
   const [overlay, setOverlay] = useState<Overlay | null>(null)
 
@@ -145,7 +151,7 @@ function App() {
       if (vectorSourceRef.current) {
         vectorSourceRef.current.clear()
         setTotalLength(0)
-        setAzimuths([]) // Clear azimuths when stopping drawing
+        setAzimuths([])
       }
       if (overlay) {
         overlay.setPosition(undefined)
@@ -153,60 +159,68 @@ function App() {
     }
   }
 
+  const enableEditing = () => {
+    if (mapRef.current) {
+      if (isEditing) {
+        // Disable editing
+        if (selectRef.current) {
+          mapRef.current.removeInteraction(selectRef.current)
+          selectRef.current = null
+        }
+        if (modifyRef.current) {
+          mapRef.current.removeInteraction(modifyRef.current)
+          modifyRef.current = null
+        }
+        setIsEditing(false)
+      } else {
+        const select = new Select()
+        const modify = new Modify({ source: vectorSourceRef.current! })
+
+        modify.on('modifyend', () => {
+          const features = vectorSourceRef.current!.getFeatures()
+          let totalLen = 0
+          const newAzimuths: string[][] = []
+
+          features.forEach((feature) => {
+            const geometry = feature.getGeometry()
+            if (geometry instanceof LineString) {
+              const coordinates: Coordinate[] = geometry.getCoordinates()
+              const azimuthsList: string[] = []
+              for (let i = 0; i < coordinates.length - 1; i++) {
+                const azimuth = calculateAzimuth(coordinates[i], coordinates[i + 1])
+                azimuthsList.push(azimuth)
+              }
+              newAzimuths.push(azimuthsList)
+
+              const length = getLength(geometry)
+              totalLen += length
+            }
+          })
+
+          setTotalLength(totalLen / 1000)
+          setAzimuths(newAzimuths)
+        })
+
+        mapRef.current.addInteraction(select)
+        mapRef.current.addInteraction(modify)
+
+        selectRef.current = select
+        modifyRef.current = modify
+        setIsEditing(true)
+      }
+    }
+  }
+
   return (
     <>
-      <div
-        id="map"
-        className="map"
-        style={{ width: '100%', height: '100vh', position: 'relative' }}
-      ></div>
-      <div
-        style={{
-          position: 'absolute',
-          top: '10px',
-          right: '10px',
-          background: 'white',
-          padding: '5px'
-        }}
-      >
-        Total Length: {totalLength.toFixed(2)} km
-      </div>
-      <div
-        style={{
-          position: 'absolute',
-          top: '50px',
-          right: '10px',
-          background: 'white',
-          padding: '5px'
-        }}
-      >
-        Azimuths:
-        {azimuths.map((azimuthList, lineIndex) => (
-          <div key={lineIndex}>
-            <strong>Line {lineIndex + 1}:</strong>
-            <ul>
-              {azimuthList.map((azimuth, segmentIndex) => (
-                <li key={segmentIndex}>
-                  Segment {segmentIndex + 1}: {azimuth}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '10px',
-          left: '10px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '5px'
-        }}
-      >
-        <button onClick={startDrawing}>Start Drawing</button>
-        <button onClick={stopDrawing}>Stop Drawing</button>
-      </div>
+      <MapLayer />
+      {totalLength ? <ResultsContainer totalLength={totalLength} azimuths={azimuths} /> : null}
+      <ButtonContainer
+        startDrawing={startDrawing}
+        stopDrawing={stopDrawing}
+        enableEditing={enableEditing}
+        isEditing={isEditing}
+      />
     </>
   )
 }

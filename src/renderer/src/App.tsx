@@ -26,6 +26,7 @@ function App() {
   const vectorSourceRef = useRef<VectorSource | null>(null)
   const [totalLength, setTotalLength] = useState<number>(0)
   const [azimuths, setAzimuths] = useState<string[][]>([])
+  const [distances, setDistances] = useState<string[][]>([])
   const [isEditing, setIsEditing] = useState<boolean>(false)
   const [overlayElement, setOverlayElement] = useState<HTMLDivElement | null>(null)
   const [overlay, setOverlay] = useState<Overlay | null>(null)
@@ -97,11 +98,15 @@ function App() {
         if (geometry instanceof LineString) {
           const coordinates: Coordinate[] = geometry.getCoordinates()
           const azimuthsList: string[] = []
+          const distancesList: string[] = []
           for (let i = 0; i < coordinates.length - 1; i++) {
             const azimuth = calculateAzimuth(coordinates[i], coordinates[i + 1])
+            const distance = calculateDistance(coordinates[i], coordinates[i + 1]) / 1000
             azimuthsList.push(azimuth)
+            distancesList.push(`${distance.toFixed(2)} km`)
           }
           setAzimuths((prevAzimuths) => [...prevAzimuths, azimuthsList])
+          setDistances((prevDistances) => [...prevDistances, distancesList])
 
           const length = getLength(geometry)
           const lengthInKm = length / 1000
@@ -152,6 +157,7 @@ function App() {
         vectorSourceRef.current.clear()
         setTotalLength(0)
         setAzimuths([])
+        setDistances([])
       }
       if (overlay) {
         overlay.setPosition(undefined)
@@ -180,17 +186,22 @@ function App() {
           const features = vectorSourceRef.current!.getFeatures()
           let totalLen = 0
           const newAzimuths: string[][] = []
+          const newDistances: string[][] = []
 
           features.forEach((feature) => {
             const geometry = feature.getGeometry()
             if (geometry instanceof LineString) {
               const coordinates: Coordinate[] = geometry.getCoordinates()
               const azimuthsList: string[] = []
+              const distancesList: string[] = []
               for (let i = 0; i < coordinates.length - 1; i++) {
                 const azimuth = calculateAzimuth(coordinates[i], coordinates[i + 1])
+                const distance = calculateDistance(coordinates[i], coordinates[i + 1]) / 1000
                 azimuthsList.push(azimuth)
+                distancesList.push(`${distance.toFixed(2)} km`)
               }
               newAzimuths.push(azimuthsList)
+              newDistances.push(distancesList)
 
               const length = getLength(geometry)
               totalLen += length
@@ -199,6 +210,7 @@ function App() {
 
           setTotalLength(totalLen / 1000)
           setAzimuths(newAzimuths)
+          setDistances(newDistances)
         })
 
         mapRef.current.addInteraction(select)
@@ -214,7 +226,9 @@ function App() {
   return (
     <>
       <MapLayer />
-      {totalLength ? <ResultsContainer totalLength={totalLength} azimuths={azimuths} /> : null}
+      {totalLength ? (
+        <ResultsContainer totalLength={totalLength} azimuths={azimuths} distances={distances} />
+      ) : null}
       <ButtonContainer
         startDrawing={startDrawing}
         stopDrawing={stopDrawing}

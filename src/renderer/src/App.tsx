@@ -4,28 +4,27 @@ import View from 'ol/View'
 import TileLayer from 'ol/layer/Tile'
 import XYZ from 'ol/source/XYZ'
 import 'ol/ol.css'
-import { fromLonLat, toLonLat } from 'ol/proj'
+import { fromLonLat } from 'ol/proj'
 import { Draw } from 'ol/interaction'
 import VectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
 import { Style, Stroke } from 'ol/style'
-import { getLength, getDistance } from 'ol/sphere'
+import { getLength } from 'ol/sphere'
 import LineString from 'ol/geom/LineString'
 import Overlay from 'ol/Overlay'
 import { Coordinate } from 'ol/coordinate'
+import { calculateAzimuth, calculateDistance } from './utils/calculations'
 
 function App() {
   const mapRef = useRef<Map | null>(null)
   const drawRef = useRef<Draw | null>(null)
   const vectorSourceRef = useRef<VectorSource | null>(null)
   const [totalLength, setTotalLength] = useState<number>(0)
-  const [azimuths, setAzimuths] = useState<string[]>([])
+  const [azimuths, setAzimuths] = useState<string[][]>([])
   const [overlayElement, setOverlayElement] = useState<HTMLDivElement | null>(null)
   const [overlay, setOverlay] = useState<Overlay | null>(null)
 
   useEffect(() => {
-    console.log('Initializing the map and vector layers')
-
     const vectorSource = new VectorSource()
     vectorSourceRef.current = vectorSource
 
@@ -33,8 +32,8 @@ function App() {
       source: vectorSource,
       style: new Style({
         stroke: new Stroke({
-          color: '#ffcc33',
-          width: 2
+          color: 'red',
+          width: 4
         })
       })
     })
@@ -60,13 +59,13 @@ function App() {
     overlayElement.style.background = 'white'
     overlayElement.style.padding = '5px'
     overlayElement.style.border = '1px solid black'
-    overlayElement.style.pointerEvents = 'none' // Ensure overlay doesn't block clicks
+    overlayElement.style.pointerEvents = 'none'
     setOverlayElement(overlayElement)
 
     const overlay = new Overlay({
       element: overlayElement,
       positioning: 'bottom-left',
-      offset: [15, -15] // Offset the overlay to the right and below the cursor
+      offset: [15, -15]
     })
     map.addOverlay(overlay)
     setOverlay(overlay)
@@ -74,53 +73,20 @@ function App() {
     mapRef.current = map
 
     return () => {
-      console.log('Cleaning up the map')
       if (mapRef.current) {
         mapRef.current.setTarget(undefined)
       }
     }
   }, [])
 
-  const toDegreesMinutesSeconds = (angle: number) => {
-    const degrees = Math.floor(angle)
-    const minutesNotTruncated = (angle - degrees) * 60
-    const minutes = Math.floor(minutesNotTruncated)
-    const seconds = Math.floor((minutesNotTruncated - minutes) * 60)
-    return `${degrees}°${minutes}'${seconds}"`
-  }
-
-  const calculateAzimuth = (start: Coordinate, end: Coordinate): string => {
-    const [lon1, lat1] = toLonLat(start)
-    const [lon2, lat2] = toLonLat(end)
-
-    const dLon = (lon2 - lon1) * (Math.PI / 180)
-    const y = Math.sin(dLon) * Math.cos(lat2 * (Math.PI / 180))
-    const x =
-      Math.cos(lat1 * (Math.PI / 180)) * Math.sin(lat2 * (Math.PI / 180)) -
-      Math.sin(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.cos(dLon)
-
-    let brng = Math.atan2(y, x)
-    brng = brng * (180 / Math.PI) // Convert to degrees
-    brng = (brng + 360) % 360 // Normalize to 0-360
-    return toDegreesMinutesSeconds(brng)
-  }
-
-  const calculateDistance = (start: Coordinate, end: Coordinate): number => {
-    const [lon1, lat1] = toLonLat(start)
-    const [lon2, lat2] = toLonLat(end)
-    return getDistance([lon1, lat1], [lon2, lat2])
-  }
-
   const startDrawing = () => {
     if (mapRef.current && !drawRef.current) {
-      console.log('Starting drawing interaction')
       const draw = new Draw({
         source: vectorSourceRef.current!,
         type: 'LineString'
       })
 
       draw.on('drawend', (event) => {
-        console.log('Draw end event triggered')
         const geometry = event.feature.getGeometry()
         if (geometry instanceof LineString) {
           const coordinates: Coordinate[] = geometry.getCoordinates()
@@ -128,13 +94,11 @@ function App() {
           for (let i = 0; i < coordinates.length - 1; i++) {
             const azimuth = calculateAzimuth(coordinates[i], coordinates[i + 1])
             azimuthsList.push(azimuth)
-            console.log(`Azimuth between point ${i} and ${i + 1}: ${azimuth}`)
           }
-          setAzimuths(azimuthsList)
+          setAzimuths((prevAzimuths) => [...prevAzimuths, azimuthsList])
 
           const length = getLength(geometry)
           const lengthInKm = length / 1000
-          console.log(`Length of drawn line: ${lengthInKm} km`)
           setTotalLength((prevTotal) => prevTotal + lengthInKm)
         } else {
           console.log('Geometry is undefined or not a LineString')
@@ -146,7 +110,6 @@ function App() {
 
       mapRef.current.addInteraction(draw)
       drawRef.current = draw
-      console.log('Draw interaction added to the map')
 
       mapRef.current.on('pointermove', (event) => {
         if (
@@ -168,7 +131,7 @@ function App() {
             const azimuth = calculateAzimuth(lastPoint, currentPoint)
             const distance = calculateDistance(lastPoint, currentPoint)
             overlayElement!.innerHTML = `Azimuth: ${azimuth}<br>Distance: ${(distance / 1000).toFixed(2)} km`
-            overlay!.setPosition([currentPoint[0] + 10, currentPoint[1] - 10]) // Offset the overlay
+            overlay!.setPosition([currentPoint[0] + 10, currentPoint[1] - 10])
           }
         }
       })
@@ -177,13 +140,12 @@ function App() {
 
   const stopDrawing = () => {
     if (mapRef.current && drawRef.current) {
-      console.log('Stopping drawing interaction and clearing vectors')
       mapRef.current.removeInteraction(drawRef.current)
       drawRef.current = null
       if (vectorSourceRef.current) {
         vectorSourceRef.current.clear()
         setTotalLength(0)
-        setAzimuths([])
+        setAzimuths([]) // Clear azimuths when stopping drawing
       }
       if (overlay) {
         overlay.setPosition(undefined)
@@ -219,13 +181,18 @@ function App() {
         }}
       >
         Azimuths:
-        <ul>
-          {azimuths.map((azimuth, index) => (
-            <li key={index}>
-              Segment {index + 1}: {azimuth}
-            </li>
-          ))}
-        </ul>
+        {azimuths.map((azimuthList, lineIndex) => (
+          <div key={lineIndex}>
+            <strong>Line {lineIndex + 1}:</strong>
+            <ul>
+              {azimuthList.map((azimuth, segmentIndex) => (
+                <li key={segmentIndex}>
+                  Segment {segmentIndex + 1}: {azimuth}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </div>
       <div
         style={{

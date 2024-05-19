@@ -40,7 +40,16 @@ const ResultsContainer: React.FC<ResultsContainerProps> = ({
         Azimuths, Distances, and Angles:
         {azimuths.map((azimuthList, lineIndex) => (
           <div key={lineIndex}>
-            <strong>Line {lineIndex + 1}:</strong>
+            <strong>
+              Line {lineIndex + 1}: Total Distance:{' '}
+              {distances[lineIndex]
+                .reduce((acc, curr) => {
+                  const value = parseFloat(curr.split(' ')[0])
+                  return acc + (isNaN(value) ? 0 : value)
+                }, 0)
+                .toFixed(2)}{' '}
+              {useMiles ? 'miles' : 'km'}
+            </strong>
             <ul>
               {azimuthList.map((azimuth, segmentIndex) => (
                 <li key={segmentIndex}>

@@ -178,7 +178,9 @@ function App() {
             const azimuth = calculateAzimuth(lastPoint, currentPoint)
             const distanceKm = calculateDistance(lastPoint, currentPoint) / 1000
             const distanceMiles = convertDistanceToMiles(distanceKm)
-            let overlayText = `Azimuth:<br> ${azimuth}<br>Distance:<br> ${useMiles ? distanceMiles.toFixed(2) + ' miles' : distanceKm.toFixed(2) + ' km'}`
+            let overlayText = `Azimuth:<br> ${azimuth}<br>Distance:<br> ${
+              useMiles ? distanceMiles.toFixed(2) + ' miles' : distanceKm.toFixed(2) + ' km'
+            }`
 
             if (coordinates.length > 2) {
               const secondLastPoint: [number, number] = coordinates[coordinates.length - 3] as [
@@ -187,7 +189,9 @@ function App() {
               ]
               const angleDeg = calculateAngle(secondLastPoint, lastPoint, currentPoint)
               const angleRad = convertAngleToRadians(angleDeg)
-              overlayText += `<br>Angle:<br>${useRadians ? angleRad.toFixed(2) + ' rad' : angleDeg.toFixed(2) + '°'}`
+              overlayText += `<br>Angle:<br>${
+                useRadians ? angleRad.toFixed(2) + ' rad' : angleDeg.toFixed(2) + '°'
+              }`
             }
             overlayElement!.innerHTML = overlayText
             overlay!.setPosition([currentPoint[0] + 10, currentPoint[1] - 10])
@@ -201,16 +205,22 @@ function App() {
     if (mapRef.current && drawRef.current) {
       mapRef.current.removeInteraction(drawRef.current)
       drawRef.current = null
-      if (vectorSourceRef.current) {
-        vectorSourceRef.current.clear()
-        setTotalLengthKm(0)
-        setTotalLengthMiles(0)
-        setAzimuths([])
-        setDistancesKm([])
-        setDistancesMiles([])
-        setAnglesDeg([])
-        setAnglesRad([])
+      if (overlay) {
+        overlay.setPosition(undefined)
       }
+    }
+  }
+
+  const clearAll = () => {
+    if (mapRef.current && vectorSourceRef.current) {
+      vectorSourceRef.current.clear()
+      setTotalLengthKm(0)
+      setTotalLengthMiles(0)
+      setAzimuths([])
+      setDistancesKm([])
+      setDistancesMiles([])
+      setAnglesDeg([])
+      setAnglesRad([])
       if (overlay) {
         overlay.setPosition(undefined)
       }
@@ -326,15 +336,17 @@ function App() {
         stopDrawing={stopDrawing}
         enableEditing={enableEditing}
         isEditing={isEditing}
+        clearDrawing={clearAll}
       />
       <div
         style={{
           position: 'absolute',
           top: '10px',
-          left: '50px',
+          left: '40px',
           display: 'flex',
-          flexDirection: 'row',
-          gap: '5px'
+          flexDirection: 'column',
+          gap: '1px',
+          width: '150px'
         }}
       >
         <button onClick={() => setUseMiles(!useMiles)}>

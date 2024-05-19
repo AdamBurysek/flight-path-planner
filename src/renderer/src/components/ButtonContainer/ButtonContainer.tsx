@@ -4,6 +4,7 @@ type ButtonContainerProps = {
   startDrawing: () => void
   stopDrawing: () => void
   enableEditing: () => void
+  clearDrawing: () => void
   isEditing: boolean
 }
 
@@ -11,6 +12,7 @@ const ButtonContainer: React.FC<ButtonContainerProps> = ({
   startDrawing,
   stopDrawing,
   enableEditing,
+  clearDrawing,
   isEditing
 }) => {
   return (
@@ -32,6 +34,9 @@ const ButtonContainer: React.FC<ButtonContainerProps> = ({
       </button>
       <button onClick={enableEditing} style={{ backgroundColor: isEditing ? 'green' : 'white' }}>
         Edit
+      </button>
+      <button onClick={clearDrawing} disabled={isEditing}>
+        Clear
       </button>
     </div>
   )

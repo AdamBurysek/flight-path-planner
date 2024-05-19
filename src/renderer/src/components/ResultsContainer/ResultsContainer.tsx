@@ -5,13 +5,15 @@ type ResultsContainerProps = {
   azimuths: string[][]
   distances: string[][]
   angles: string[][]
+  useMiles: boolean // Add this prop to handle unit toggle
 }
 
 const ResultsContainer: React.FC<ResultsContainerProps> = ({
   totalLength,
   azimuths,
   distances,
-  angles
+  angles,
+  useMiles // Destructure the new prop
 }) => {
   return (
     <>
@@ -24,7 +26,7 @@ const ResultsContainer: React.FC<ResultsContainerProps> = ({
           padding: '5px'
         }}
       >
-        Total Length: {totalLength.toFixed(2)} km
+        Total Length: {totalLength.toFixed(2)} {useMiles ? 'miles' : 'km'}
       </div>
       <div
         style={{

@@ -13,7 +13,13 @@ import { getLength } from 'ol/sphere'
 import LineString from 'ol/geom/LineString'
 import Overlay from 'ol/Overlay'
 import { Coordinate } from 'ol/coordinate'
-import { calculateAzimuth, calculateDistance, calculateAngle } from './utils/calculations'
+import {
+  calculateAzimuth,
+  calculateDistance,
+  calculateAngle,
+  convertDistanceToMiles,
+  convertAngleToRadians
+} from './utils/calculations'
 import ButtonContainer from './components/ButtonContainer/ButtonContainer'
 import ResultsContainer from './components/ResultsContainer/ResultsContainer'
 import MapLayer from './components/MapLayer/MapLayer'
@@ -24,10 +30,13 @@ function App() {
   const modifyRef = useRef<Modify | null>(null)
   const selectRef = useRef<Select | null>(null)
   const vectorSourceRef = useRef<VectorSource | null>(null)
-  const [totalLength, setTotalLength] = useState<number>(0)
+  const [totalLengthKm, setTotalLengthKm] = useState<number>(0)
+  const [totalLengthMiles, setTotalLengthMiles] = useState<number>(0)
   const [azimuths, setAzimuths] = useState<string[][]>([])
-  const [distances, setDistances] = useState<string[][]>([])
-  const [angles, setAngles] = useState<string[][]>([])
+  const [distancesKm, setDistancesKm] = useState<string[][]>([])
+  const [distancesMiles, setDistancesMiles] = useState<string[][]>([])
+  const [anglesDeg, setAnglesDeg] = useState<string[][]>([])
+  const [anglesRad, setAnglesRad] = useState<string[][]>([])
   const [isEditing, setIsEditing] = useState<boolean>(false)
   const [overlayElement, setOverlayElement] = useState<HTMLDivElement | null>(null)
   const [overlay, setOverlay] = useState<Overlay | null>(null)
@@ -101,29 +110,47 @@ function App() {
         if (geometry instanceof LineString) {
           const coordinates: Coordinate[] = geometry.getCoordinates()
           const azimuthsList: string[] = []
-          const distancesList: string[] = []
-          const anglesList: string[] = []
+          const distancesKmList: string[] = []
+          const distancesMilesList: string[] = []
+          const anglesDegList: string[] = []
+          const anglesRadList: string[] = []
+
           for (let i = 0; i < coordinates.length - 1; i++) {
             const azimuth = calculateAzimuth(coordinates[i], coordinates[i + 1])
-            const distance = calculateDistance(coordinates[i], coordinates[i + 1]) / 1000
+            const distanceKm = calculateDistance(coordinates[i], coordinates[i + 1]) / 1000
+            const distanceMiles = convertDistanceToMiles(distanceKm)
+
             azimuthsList.push(azimuth)
-            distancesList.push(
-              `${convertDistance(distance).toFixed(2)} ${useMiles ? 'miles' : 'km'}`
-            )
+            distancesKmList.push(`${distanceKm.toFixed(2)} km`)
+            distancesMilesList.push(`${distanceMiles.toFixed(2)} miles`)
+
             if (i > 0) {
-              const angle = calculateAngle(coordinates[i - 1], coordinates[i], coordinates[i + 1])
-              anglesList.push(`${convertAngle(angle).toFixed(2)}${useRadians ? ' rad' : '°'}`)
+              const angleDeg = calculateAngle(
+                coordinates[i - 1],
+                coordinates[i],
+                coordinates[i + 1]
+              )
+              const angleRad = convertAngleToRadians(angleDeg)
+
+              anglesDegList.push(`${angleDeg.toFixed(2)}°`)
+              anglesRadList.push(`${angleRad.toFixed(2)} rad`)
             } else {
-              anglesList.push('N/A')
+              anglesDegList.push('N/A')
+              anglesRadList.push('N/A')
             }
           }
-          setAzimuths((prevAzimuths) => [...prevAzimuths, azimuthsList])
-          setDistances((prevDistances) => [...prevDistances, distancesList])
-          setAngles((prevAngles) => [...prevAngles, anglesList])
 
-          const length = getLength(geometry)
-          const lengthInKm = length / 1000
-          setTotalLength((prevTotal) => prevTotal + convertDistance(lengthInKm))
+          setAzimuths((prevAzimuths) => [...prevAzimuths, azimuthsList])
+          setDistancesKm((prevDistances) => [...prevDistances, distancesKmList])
+          setDistancesMiles((prevDistances) => [...prevDistances, distancesMilesList])
+          setAnglesDeg((prevAngles) => [...prevAngles, anglesDegList])
+          setAnglesRad((prevAngles) => [...prevAngles, anglesRadList])
+
+          const lengthKm = getLength(geometry) / 1000
+          const lengthMiles = convertDistanceToMiles(lengthKm)
+
+          setTotalLengthKm((prevTotal) => prevTotal + lengthKm)
+          setTotalLengthMiles((prevTotal) => prevTotal + lengthMiles)
         } else {
           console.log('Geometry is undefined or not a LineString')
         }
@@ -131,6 +158,7 @@ function App() {
           overlay.setPosition(undefined)
         }
       })
+
       mapRef.current.addInteraction(draw)
       drawRef.current = draw
 
@@ -152,15 +180,18 @@ function App() {
             ]
             const currentPoint: [number, number] = event.coordinate as [number, number]
             const azimuth = calculateAzimuth(lastPoint, currentPoint)
-            const distance = calculateDistance(lastPoint, currentPoint)
-            let overlayText = `Azimuth: ${azimuth}<br>Distance: ${convertDistance(distance / 1000).toFixed(2)} ${useMiles ? 'miles' : 'km'}`
+            const distanceKm = calculateDistance(lastPoint, currentPoint) / 1000
+            const distanceMiles = convertDistanceToMiles(distanceKm)
+            let overlayText = `Azimuth: ${azimuth}<br>Distance: ${useMiles ? distanceMiles.toFixed(2) + ' miles' : distanceKm.toFixed(2) + ' km'}`
+
             if (coordinates.length > 2) {
               const secondLastPoint: [number, number] = coordinates[coordinates.length - 3] as [
                 number,
                 number
               ]
-              const angle = calculateAngle(secondLastPoint, lastPoint, currentPoint)
-              overlayText += `<br>Angle: ${convertAngle(angle).toFixed(2)}${useRadians ? ' rad' : '°'}`
+              const angleDeg = calculateAngle(secondLastPoint, lastPoint, currentPoint)
+              const angleRad = convertAngleToRadians(angleDeg)
+              overlayText += `<br>Angle: ${useRadians ? angleRad.toFixed(2) + ' rad' : angleDeg.toFixed(2) + '°'}`
             }
             overlayElement!.innerHTML = overlayText
             overlay!.setPosition([currentPoint[0] + 10, currentPoint[1] - 10])
@@ -176,10 +207,13 @@ function App() {
       drawRef.current = null
       if (vectorSourceRef.current) {
         vectorSourceRef.current.clear()
-        setTotalLength(0)
+        setTotalLengthKm(0)
+        setTotalLengthMiles(0)
         setAzimuths([])
-        setDistances([])
-        setAngles([])
+        setDistancesKm([])
+        setDistancesMiles([])
+        setAnglesDeg([])
+        setAnglesRad([])
       }
       if (overlay) {
         overlay.setPosition(undefined)
@@ -205,49 +239,68 @@ function App() {
 
         modify.on('modifyend', () => {
           const features = vectorSourceRef.current!.getFeatures()
-          let totalLen = 0
+          let totalLenKm = 0
+          let totalLenMiles = 0
           const newAzimuths: string[][] = []
-          const newDistances: string[][] = []
-          const newAngles: string[][] = []
+          const newDistancesKm: string[][] = []
+          const newDistancesMiles: string[][] = []
+          const newAnglesDeg: string[][] = []
+          const newAnglesRad: string[][] = []
 
           features.forEach((feature) => {
             const geometry = feature.getGeometry()
             if (geometry instanceof LineString) {
               const coordinates: Coordinate[] = geometry.getCoordinates()
               const azimuthsList: string[] = []
-              const distancesList: string[] = []
-              const anglesList: string[] = []
+              const distancesKmList: string[] = []
+              const distancesMilesList: string[] = []
+              const anglesDegList: string[] = []
+              const anglesRadList: string[] = []
+
               for (let i = 0; i < coordinates.length - 1; i++) {
                 const azimuth = calculateAzimuth(coordinates[i], coordinates[i + 1])
-                const distance = calculateDistance(coordinates[i], coordinates[i + 1]) / 1000
+                const distanceKm = calculateDistance(coordinates[i], coordinates[i + 1]) / 1000
+                const distanceMiles = convertDistanceToMiles(distanceKm)
+
                 azimuthsList.push(azimuth)
-                distancesList.push(
-                  `${convertDistance(distance).toFixed(2)} ${useMiles ? 'miles' : 'km'}`
-                )
+                distancesKmList.push(`${distanceKm.toFixed(2)} km`)
+                distancesMilesList.push(`${distanceMiles.toFixed(2)} miles`)
+
                 if (i > 0) {
-                  const angle = calculateAngle(
+                  const angleDeg = calculateAngle(
                     coordinates[i - 1],
                     coordinates[i],
                     coordinates[i + 1]
                   )
-                  anglesList.push(`${convertAngle(angle).toFixed(2)}${useRadians ? ' rad' : '°'}`)
+                  const angleRad = convertAngleToRadians(angleDeg)
+
+                  anglesDegList.push(`${angleDeg.toFixed(2)}°`)
+                  anglesRadList.push(`${angleRad.toFixed(2)} rad`)
                 } else {
-                  anglesList.push('N/A')
+                  anglesDegList.push('N/A')
+                  anglesRadList.push('N/A')
                 }
               }
-              newAzimuths.push(azimuthsList)
-              newDistances.push(distancesList)
-              newAngles.push(anglesList)
 
-              const length = getLength(geometry)
-              totalLen += convertDistance(length / 1000)
+              newAzimuths.push(azimuthsList)
+              newDistancesKm.push(distancesKmList)
+              newDistancesMiles.push(distancesMilesList)
+              newAnglesDeg.push(anglesDegList)
+              newAnglesRad.push(anglesRadList)
+
+              const lengthKm = getLength(geometry) / 1000
+              totalLenKm += lengthKm
+              totalLenMiles += convertDistanceToMiles(lengthKm)
             }
           })
 
-          setTotalLength(totalLen / 1000)
+          setTotalLengthKm(totalLenKm)
+          setTotalLengthMiles(totalLenMiles)
           setAzimuths(newAzimuths)
-          setDistances(newDistances)
-          setAngles(newAngles)
+          setDistancesKm(newDistancesKm)
+          setDistancesMiles(newDistancesMiles)
+          setAnglesDeg(newAnglesDeg)
+          setAnglesRad(newAnglesRad)
         })
 
         mapRef.current.addInteraction(select)
@@ -260,23 +313,16 @@ function App() {
     }
   }
 
-  const convertDistance = (distance: number) => {
-    return useMiles ? distance * 0.621371 : distance
-  }
-
-  const convertAngle = (angle: number) => {
-    return useRadians ? angle * (Math.PI / 180) : angle
-  }
-
   return (
     <>
       <MapLayer />
-      {totalLength ? (
+      {totalLengthKm ? (
         <ResultsContainer
-          totalLength={totalLength}
+          totalLength={useMiles ? totalLengthMiles : totalLengthKm}
           azimuths={azimuths}
-          distances={distances}
-          angles={angles}
+          distances={useMiles ? distancesMiles : distancesKm}
+          angles={useRadians ? anglesRad : anglesDeg}
+          useMiles={useMiles}
         />
       ) : null}
       <ButtonContainer

@@ -42,3 +42,6 @@ export const calculateAngle = (point1: Coordinate, point2: Coordinate, point3: C
   }
   return angle
 }
+
+export const convertDistanceToMiles = (distanceKm: number) => distanceKm * 0.621371
+export const convertAngleToRadians = (angleDeg: number) => angleDeg * (Math.PI / 180)

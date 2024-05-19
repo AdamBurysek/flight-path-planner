@@ -333,6 +333,95 @@ function App() {
     }
   }
 
+  const deleteSegment = (lineIndex: number, segmentIndex: number) => {
+    if (!vectorSourceRef.current) return
+
+    const features = vectorSourceRef.current.getFeatures()
+    if (lineIndex < 0 || lineIndex >= features.length) return
+
+    const geometry = features[lineIndex].getGeometry() as LineString
+    const coordinates = geometry.getCoordinates()
+
+    if (segmentIndex < 0 || segmentIndex >= coordinates.length - 1) return
+
+    coordinates.splice(segmentIndex + 1, 1)
+    if (coordinates.length < 2) {
+      vectorSourceRef.current.removeFeature(features[lineIndex])
+    } else {
+      geometry.setCoordinates(coordinates)
+    }
+
+    updateStateFromFeatures()
+  }
+
+  const updateStateFromFeatures = () => {
+    if (!vectorSourceRef.current) return
+
+    const features = vectorSourceRef.current.getFeatures()
+    let totalLenKm = 0
+    let totalLenMiles = 0
+    const newAzimuths: string[][] = []
+    const newDistancesKm: string[][] = []
+    const newDistancesMiles: string[][] = []
+    const newAnglesDeg: string[][] = []
+    const newAnglesRad: string[][] = []
+
+    features.forEach((feature) => {
+      const geometry = feature.getGeometry()
+      if (geometry instanceof LineString) {
+        const coordinates: Coordinate[] = geometry.getCoordinates()
+        const azimuthsList: string[] = []
+        const distancesKmList: string[] = []
+        const distancesMilesList: string[] = []
+        const anglesDegList: string[] = []
+        const anglesRadList: string[] = []
+
+        for (let i = 0; i < coordinates.length - 1; i++) {
+          const azimuth = calculateAzimuth(coordinates[i], coordinates[i + 1])
+          const distanceKm = calculateDistance(coordinates[i], coordinates[i + 1]) / 1000
+          const distanceMiles = convertDistanceToMiles(distanceKm)
+
+          azimuthsList.push(azimuth)
+          distancesKmList.push(`${distanceKm.toFixed(2)} km`)
+          distancesMilesList.push(`${distanceMiles.toFixed(2)} miles`)
+
+          if (i > 0) {
+            const { angle: angleDeg, direction } = calculateTurnAngle(
+              coordinates[i - 1],
+              coordinates[i],
+              coordinates[i + 1]
+            )
+            const angleRad = convertAngleToRadians(angleDeg)
+
+            anglesDegList.push(`${angleDeg.toFixed(2)}° ${direction}`)
+            anglesRadList.push(`${angleRad.toFixed(2)} rad ${direction}`)
+          } else {
+            anglesDegList.push('N/A')
+            anglesRadList.push('N/A')
+          }
+        }
+
+        newAzimuths.push(azimuthsList)
+        newDistancesKm.push(distancesKmList)
+        newDistancesMiles.push(distancesMilesList)
+        newAnglesDeg.push(anglesDegList)
+        newAnglesRad.push(anglesRadList)
+
+        const lengthKm = getLength(geometry) / 1000
+        totalLenKm += lengthKm
+        totalLenMiles += convertDistanceToMiles(lengthKm)
+      }
+    })
+
+    setTotalLengthKm(totalLenKm)
+    setTotalLengthMiles(totalLenMiles)
+    setAzimuths(newAzimuths)
+    setDistancesKm(newDistancesKm)
+    setDistancesMiles(newDistancesMiles)
+    setAnglesDeg(newAnglesDeg)
+    setAnglesRad(newAnglesRad)
+  }
+
   return (
     <>
       <MapLayer />
@@ -343,6 +432,7 @@ function App() {
           distances={useMiles ? distancesMiles : distancesKm}
           angles={useRadians ? anglesRad : anglesDeg}
           useMiles={useMiles}
+          onDeleteSegment={deleteSegment}
         />
       ) : null}
       <ButtonContainer

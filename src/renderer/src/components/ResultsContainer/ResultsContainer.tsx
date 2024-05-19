@@ -6,6 +6,7 @@ type ResultsContainerProps = {
   distances: string[][]
   angles: string[][]
   useMiles: boolean
+  onDeleteSegment: (lineIndex: number, segmentIndex: number) => void
 }
 
 const ResultsContainer: React.FC<ResultsContainerProps> = ({
@@ -13,7 +14,8 @@ const ResultsContainer: React.FC<ResultsContainerProps> = ({
   azimuths,
   distances,
   angles,
-  useMiles
+  useMiles,
+  onDeleteSegment
 }) => {
   return (
     <>
@@ -37,25 +39,20 @@ const ResultsContainer: React.FC<ResultsContainerProps> = ({
           padding: '5px'
         }}
       >
-        Azimuths, Distances, and Turn Angles:
+        Azimuths, Distances, and Angles:
         {azimuths.map((azimuthList, lineIndex) => (
           <div key={lineIndex}>
             <strong>
-              Line {lineIndex + 1}: Total Distance:{' '}
-              {distances[lineIndex]
-                .reduce((acc, curr) => {
-                  const value = parseFloat(curr.split(' ')[0])
-                  return acc + (isNaN(value) ? 0 : value)
-                }, 0)
-                .toFixed(2)}{' '}
-              {useMiles ? 'miles' : 'km'}
+              Line {lineIndex + 1} (Total Distance:{' '}
+              {distances[lineIndex].reduce((acc, dist) => acc + parseFloat(dist), 0).toFixed(2)}{' '}
+              {useMiles ? 'miles' : 'km'}):
             </strong>
             <ul>
               {azimuthList.map((azimuth, segmentIndex) => (
                 <li key={segmentIndex}>
                   Segment {segmentIndex + 1}: Azimuth: {azimuth}, Distance:{' '}
-                  {distances[lineIndex][segmentIndex]}, Turn Angle:{' '}
-                  {angles[lineIndex][segmentIndex]}
+                  {distances[lineIndex][segmentIndex]}, Angle: {angles[lineIndex][segmentIndex]}
+                  <button onClick={() => onDeleteSegment(lineIndex, segmentIndex)}>Delete</button>
                 </li>
               ))}
             </ul>

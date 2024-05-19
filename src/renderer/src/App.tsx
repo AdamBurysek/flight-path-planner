@@ -74,11 +74,7 @@ function App() {
     })
 
     const overlayElement = document.createElement('div')
-    overlayElement.style.position = 'absolute'
-    overlayElement.style.background = 'white'
-    overlayElement.style.padding = '10px'
-    overlayElement.style.border = '1px solid black'
-    overlayElement.style.borderRadius = '10px'
+    overlayElement.id = 'overlay'
     setOverlayElement(overlayElement)
 
     const overlay = new Overlay({
@@ -182,7 +178,7 @@ function App() {
             const azimuth = calculateAzimuth(lastPoint, currentPoint)
             const distanceKm = calculateDistance(lastPoint, currentPoint) / 1000
             const distanceMiles = convertDistanceToMiles(distanceKm)
-            let overlayText = `Azimuth: ${azimuth}<br>Distance: ${useMiles ? distanceMiles.toFixed(2) + ' miles' : distanceKm.toFixed(2) + ' km'}`
+            let overlayText = `Azimuth:<br> ${azimuth}<br>Distance:<br> ${useMiles ? distanceMiles.toFixed(2) + ' miles' : distanceKm.toFixed(2) + ' km'}`
 
             if (coordinates.length > 2) {
               const secondLastPoint: [number, number] = coordinates[coordinates.length - 3] as [
@@ -191,7 +187,7 @@ function App() {
               ]
               const angleDeg = calculateAngle(secondLastPoint, lastPoint, currentPoint)
               const angleRad = convertAngleToRadians(angleDeg)
-              overlayText += `<br>Angle: ${useRadians ? angleRad.toFixed(2) + ' rad' : angleDeg.toFixed(2) + '°'}`
+              overlayText += `<br>Angle:<br>${useRadians ? angleRad.toFixed(2) + ' rad' : angleDeg.toFixed(2) + '°'}`
             }
             overlayElement!.innerHTML = overlayText
             overlay!.setPosition([currentPoint[0] + 10, currentPoint[1] - 10])
@@ -334,18 +330,18 @@ function App() {
       <div
         style={{
           position: 'absolute',
-          bottom: '10px',
-          right: '10px',
+          top: '10px',
+          left: '50px',
           display: 'flex',
-          flexDirection: 'column',
+          flexDirection: 'row',
           gap: '5px'
         }}
       >
         <button onClick={() => setUseMiles(!useMiles)}>
-          Toggle Distance: {useMiles ? 'Miles' : 'Kilometers'}
+          Distance: {useMiles ? 'Miles' : 'Kilometers'}
         </button>
         <button onClick={() => setUseRadians(!useRadians)}>
-          Toggle Angle: {useRadians ? 'Radians' : 'Degrees'}
+          Angle: {useRadians ? 'Radians' : 'Degrees'}
         </button>
       </div>
     </>

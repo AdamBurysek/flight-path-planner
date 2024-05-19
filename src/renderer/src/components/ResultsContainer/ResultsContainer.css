@@ -1,0 +1,14 @@
+.segment-item {
+  position: relative;
+  padding-left: 60px; /* Adjust as needed to make room for the delete button */
+}
+
+.segment-item .delete-button {
+  display: none;
+  position: absolute;
+  left: 0;
+}
+
+.segment-item:hover .delete-button {
+  display: inline-block;
+}

@@ -1,4 +1,5 @@
 import React from 'react'
+import './ResultsContainer.css'
 
 type ResultsContainerProps = {
   totalLength: number
@@ -49,10 +50,15 @@ const ResultsContainer: React.FC<ResultsContainerProps> = ({
             </strong>
             <ul>
               {azimuthList.map((azimuth, segmentIndex) => (
-                <li key={segmentIndex}>
+                <li key={segmentIndex} className="segment-item">
+                  <button
+                    className="delete-button"
+                    onClick={() => onDeleteSegment(lineIndex, segmentIndex)}
+                  >
+                    Delete
+                  </button>
                   Segment {segmentIndex + 1}: Azimuth: {azimuth}, Distance:{' '}
                   {distances[lineIndex][segmentIndex]}, Angle: {angles[lineIndex][segmentIndex]}
-                  <button onClick={() => onDeleteSegment(lineIndex, segmentIndex)}>Delete</button>
                 </li>
               ))}
             </ul>

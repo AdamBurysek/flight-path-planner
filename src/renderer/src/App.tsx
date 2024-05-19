@@ -23,6 +23,7 @@ import {
 import ButtonContainer from './components/ButtonContainer/ButtonContainer'
 import ResultsContainer from './components/ResultsContainer/ResultsContainer'
 import MapLayer from './components/MapLayer/MapLayer'
+import UnitsSwitchContainer from './components/UnitsSwitchContainer/UnitsSwitchContainer'
 
 function App() {
   const mapRef = useRef<Map | null>(null)
@@ -257,6 +258,7 @@ function App() {
 
         modify.on('modifyend', () => {
           const features = vectorSourceRef.current!.getFeatures()
+          console.log(features)
           let totalLenKm = 0
           let totalLenMiles = 0
           const newAzimuths: string[][] = []
@@ -352,24 +354,12 @@ function App() {
         isDrawing={isDrawing}
         totalLength={totalLengthKm}
       />
-      <div
-        style={{
-          position: 'absolute',
-          top: '10px',
-          left: '40px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '1px',
-          width: '150px'
-        }}
-      >
-        <button onClick={() => setUseMiles(!useMiles)}>
-          Distance: {useMiles ? 'Miles' : 'Kilometers'}
-        </button>
-        <button onClick={() => setUseRadians(!useRadians)}>
-          Turn Angle: {useRadians ? 'Radians' : 'Degrees'}
-        </button>
-      </div>
+      <UnitsSwitchContainer
+        useMiles={useMiles}
+        useRadians={useRadians}
+        setUseMiles={setUseMiles}
+        setUseRadians={setUseRadians}
+      />
     </>
   )
 }

@@ -13,7 +13,7 @@ const ResultsContainer: React.FC<ResultsContainerProps> = ({
   azimuths,
   distances,
   angles,
-  useMiles // Destructure the new prop
+  useMiles
 }) => {
   return (
     <>

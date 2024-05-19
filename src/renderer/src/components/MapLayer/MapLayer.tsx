@@ -1,4 +1,6 @@
-const MapLayer = () => {
+import React from 'react'
+
+const MapLayer: React.FC = (): JSX.Element => {
   return (
     <div
       id="map"

@@ -6,6 +6,8 @@ type ButtonContainerProps = {
   enableEditing: () => void
   clearDrawing: () => void
   isEditing: boolean
+  isDrawing: boolean
+  totalLength: number
 }
 
 const ButtonContainer: React.FC<ButtonContainerProps> = ({
@@ -13,7 +15,9 @@ const ButtonContainer: React.FC<ButtonContainerProps> = ({
   stopDrawing,
   enableEditing,
   clearDrawing,
-  isEditing
+  isEditing,
+  isDrawing,
+  totalLength
 }) => {
   return (
     <div
@@ -26,18 +30,15 @@ const ButtonContainer: React.FC<ButtonContainerProps> = ({
         gap: '5px'
       }}
     >
-      <button onClick={startDrawing} disabled={isEditing}>
-        Start Drawing
-      </button>
-      <button onClick={stopDrawing} disabled={isEditing}>
-        Stop Drawing
-      </button>
+      {isDrawing ? (
+        <button onClick={stopDrawing}>Stop Drawing</button>
+      ) : (
+        <button onClick={startDrawing}>Start Drawing</button>
+      )}
       <button onClick={enableEditing} style={{ backgroundColor: isEditing ? 'green' : 'white' }}>
         Edit
       </button>
-      <button onClick={clearDrawing} disabled={isEditing}>
-        Clear
-      </button>
+      {totalLength ? <button onClick={clearDrawing}>Clear</button> : null}
     </div>
   )
 }

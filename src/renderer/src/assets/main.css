@@ -5,13 +5,8 @@
   margin: 0;
 }
 
-ul {
-  list-style: none;
-}
-
 body {
   min-height: 100vh;
-  line-height: 1.6;
   font-family:
     'Helvetica Neue',
     Inter,
@@ -30,6 +25,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+ul {
+  list-style: none;
+}
+
 .map {
   width: 100%;
   height: 100%;
@@ -41,6 +40,7 @@ body {
   background-color: #ffffff05;
   padding: 10px;
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border: 1px solid black;
   border-radius: 10px;
 }

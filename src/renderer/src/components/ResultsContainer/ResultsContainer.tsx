@@ -5,7 +5,7 @@ type ResultsContainerProps = {
   azimuths: string[][]
   distances: string[][]
   angles: string[][]
-  useMiles: boolean // Add this prop to handle unit toggle
+  useMiles: boolean
 }
 
 const ResultsContainer: React.FC<ResultsContainerProps> = ({
@@ -37,7 +37,7 @@ const ResultsContainer: React.FC<ResultsContainerProps> = ({
           padding: '5px'
         }}
       >
-        Azimuths, Distances, and Angles:
+        Azimuths, Distances, and Turn Angles:
         {azimuths.map((azimuthList, lineIndex) => (
           <div key={lineIndex}>
             <strong>
@@ -54,7 +54,8 @@ const ResultsContainer: React.FC<ResultsContainerProps> = ({
               {azimuthList.map((azimuth, segmentIndex) => (
                 <li key={segmentIndex}>
                   Segment {segmentIndex + 1}: Azimuth: {azimuth}, Distance:{' '}
-                  {distances[lineIndex][segmentIndex]}, Angle: {angles[lineIndex][segmentIndex]}
+                  {distances[lineIndex][segmentIndex]}, Turn Angle:{' '}
+                  {angles[lineIndex][segmentIndex]}
                 </li>
               ))}
             </ul>

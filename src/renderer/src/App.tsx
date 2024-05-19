@@ -16,7 +16,7 @@ import { Coordinate } from 'ol/coordinate'
 import {
   calculateAzimuth,
   calculateDistance,
-  calculateAngle,
+  calculateTurnAngle,
   convertDistanceToMiles,
   convertAngleToRadians
 } from './utils/calculations'
@@ -38,6 +38,7 @@ function App() {
   const [anglesDeg, setAnglesDeg] = useState<string[][]>([])
   const [anglesRad, setAnglesRad] = useState<string[][]>([])
   const [isEditing, setIsEditing] = useState<boolean>(false)
+  const [isDrawing, setIsDrawing] = useState<boolean>(false)
   const [overlayElement, setOverlayElement] = useState<HTMLDivElement | null>(null)
   const [overlay, setOverlay] = useState<Overlay | null>(null)
   const [useMiles, setUseMiles] = useState<boolean>(false)
@@ -101,6 +102,10 @@ function App() {
         type: 'LineString'
       })
 
+      if (!isDrawing) {
+        setIsDrawing(true)
+      }
+
       draw.on('drawend', (event) => {
         const geometry = event.feature.getGeometry()
         if (geometry instanceof LineString) {
@@ -121,15 +126,15 @@ function App() {
             distancesMilesList.push(`${distanceMiles.toFixed(2)} miles`)
 
             if (i > 0) {
-              const angleDeg = calculateAngle(
+              const { angle: angleDeg, direction } = calculateTurnAngle(
                 coordinates[i - 1],
                 coordinates[i],
                 coordinates[i + 1]
               )
               const angleRad = convertAngleToRadians(angleDeg)
 
-              anglesDegList.push(`${angleDeg.toFixed(2)}°`)
-              anglesRadList.push(`${angleRad.toFixed(2)} rad`)
+              anglesDegList.push(`${angleDeg.toFixed(2)}° ${direction}`)
+              anglesRadList.push(`${angleRad.toFixed(2)} rad ${direction}`)
             } else {
               anglesDegList.push('N/A')
               anglesRadList.push('N/A')
@@ -187,11 +192,15 @@ function App() {
                 number,
                 number
               ]
-              const angleDeg = calculateAngle(secondLastPoint, lastPoint, currentPoint)
+              const { angle: angleDeg, direction } = calculateTurnAngle(
+                secondLastPoint,
+                lastPoint,
+                currentPoint
+              )
               const angleRad = convertAngleToRadians(angleDeg)
-              overlayText += `<br>Angle:<br>${
+              overlayText += `<br>Turn Angle:<br>${
                 useRadians ? angleRad.toFixed(2) + ' rad' : angleDeg.toFixed(2) + '°'
-              }`
+              } ${direction}`
             }
             overlayElement!.innerHTML = overlayText
             overlay!.setPosition([currentPoint[0] + 10, currentPoint[1] - 10])
@@ -203,6 +212,9 @@ function App() {
 
   const stopDrawing = () => {
     if (mapRef.current && drawRef.current) {
+      if (isDrawing) {
+        setIsDrawing(false)
+      }
       mapRef.current.removeInteraction(drawRef.current)
       drawRef.current = null
       if (overlay) {
@@ -273,15 +285,15 @@ function App() {
                 distancesMilesList.push(`${distanceMiles.toFixed(2)} miles`)
 
                 if (i > 0) {
-                  const angleDeg = calculateAngle(
+                  const { angle: angleDeg, direction } = calculateTurnAngle(
                     coordinates[i - 1],
                     coordinates[i],
                     coordinates[i + 1]
                   )
                   const angleRad = convertAngleToRadians(angleDeg)
 
-                  anglesDegList.push(`${angleDeg.toFixed(2)}°`)
-                  anglesRadList.push(`${angleRad.toFixed(2)} rad`)
+                  anglesDegList.push(`${angleDeg.toFixed(2)}° ${direction}`)
+                  anglesRadList.push(`${angleRad.toFixed(2)} rad ${direction}`)
                 } else {
                   anglesDegList.push('N/A')
                   anglesRadList.push('N/A')
@@ -337,6 +349,8 @@ function App() {
         enableEditing={enableEditing}
         isEditing={isEditing}
         clearDrawing={clearAll}
+        isDrawing={isDrawing}
+        totalLength={totalLengthKm}
       />
       <div
         style={{
@@ -353,7 +367,7 @@ function App() {
           Distance: {useMiles ? 'Miles' : 'Kilometers'}
         </button>
         <button onClick={() => setUseRadians(!useRadians)}>
-          Angle: {useRadians ? 'Radians' : 'Degrees'}
+          Turn Angle: {useRadians ? 'Radians' : 'Degrees'}
         </button>
       </div>
     </>

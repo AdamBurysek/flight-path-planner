@@ -13,7 +13,7 @@ import { getLength } from 'ol/sphere'
 import LineString from 'ol/geom/LineString'
 import Overlay from 'ol/Overlay'
 import { Coordinate } from 'ol/coordinate'
-import { calculateAzimuth, calculateDistance } from './utils/calculations'
+import { calculateAzimuth, calculateDistance, calculateAngle } from './utils/calculations'
 import ButtonContainer from './components/ButtonContainer/ButtonContainer'
 import ResultsContainer from './components/ResultsContainer/ResultsContainer'
 import MapLayer from './components/MapLayer/MapLayer'
@@ -27,9 +27,12 @@ function App() {
   const [totalLength, setTotalLength] = useState<number>(0)
   const [azimuths, setAzimuths] = useState<string[][]>([])
   const [distances, setDistances] = useState<string[][]>([])
+  const [angles, setAngles] = useState<string[][]>([])
   const [isEditing, setIsEditing] = useState<boolean>(false)
   const [overlayElement, setOverlayElement] = useState<HTMLDivElement | null>(null)
   const [overlay, setOverlay] = useState<Overlay | null>(null)
+  const [useMiles, setUseMiles] = useState<boolean>(false)
+  const [useRadians, setUseRadians] = useState<boolean>(false)
 
   useEffect(() => {
     const vectorSource = new VectorSource()
@@ -64,9 +67,9 @@ function App() {
     const overlayElement = document.createElement('div')
     overlayElement.style.position = 'absolute'
     overlayElement.style.background = 'white'
-    overlayElement.style.padding = '5px'
+    overlayElement.style.padding = '10px'
     overlayElement.style.border = '1px solid black'
-    overlayElement.style.pointerEvents = 'none'
+    overlayElement.style.borderRadius = '10px'
     setOverlayElement(overlayElement)
 
     const overlay = new Overlay({
@@ -99,18 +102,28 @@ function App() {
           const coordinates: Coordinate[] = geometry.getCoordinates()
           const azimuthsList: string[] = []
           const distancesList: string[] = []
+          const anglesList: string[] = []
           for (let i = 0; i < coordinates.length - 1; i++) {
             const azimuth = calculateAzimuth(coordinates[i], coordinates[i + 1])
             const distance = calculateDistance(coordinates[i], coordinates[i + 1]) / 1000
             azimuthsList.push(azimuth)
-            distancesList.push(`${distance.toFixed(2)} km`)
+            distancesList.push(
+              `${convertDistance(distance).toFixed(2)} ${useMiles ? 'miles' : 'km'}`
+            )
+            if (i > 0) {
+              const angle = calculateAngle(coordinates[i - 1], coordinates[i], coordinates[i + 1])
+              anglesList.push(`${convertAngle(angle).toFixed(2)}${useRadians ? ' rad' : '°'}`)
+            } else {
+              anglesList.push('N/A')
+            }
           }
           setAzimuths((prevAzimuths) => [...prevAzimuths, azimuthsList])
           setDistances((prevDistances) => [...prevDistances, distancesList])
+          setAngles((prevAngles) => [...prevAngles, anglesList])
 
           const length = getLength(geometry)
           const lengthInKm = length / 1000
-          setTotalLength((prevTotal) => prevTotal + lengthInKm)
+          setTotalLength((prevTotal) => prevTotal + convertDistance(lengthInKm))
         } else {
           console.log('Geometry is undefined or not a LineString')
         }
@@ -118,7 +131,6 @@ function App() {
           overlay.setPosition(undefined)
         }
       })
-
       mapRef.current.addInteraction(draw)
       drawRef.current = draw
 
@@ -141,7 +153,16 @@ function App() {
             const currentPoint: [number, number] = event.coordinate as [number, number]
             const azimuth = calculateAzimuth(lastPoint, currentPoint)
             const distance = calculateDistance(lastPoint, currentPoint)
-            overlayElement!.innerHTML = `Azimuth: ${azimuth}<br>Distance: ${(distance / 1000).toFixed(2)} km`
+            let overlayText = `Azimuth: ${azimuth}<br>Distance: ${convertDistance(distance / 1000).toFixed(2)} ${useMiles ? 'miles' : 'km'}`
+            if (coordinates.length > 2) {
+              const secondLastPoint: [number, number] = coordinates[coordinates.length - 3] as [
+                number,
+                number
+              ]
+              const angle = calculateAngle(secondLastPoint, lastPoint, currentPoint)
+              overlayText += `<br>Angle: ${convertAngle(angle).toFixed(2)}${useRadians ? ' rad' : '°'}`
+            }
+            overlayElement!.innerHTML = overlayText
             overlay!.setPosition([currentPoint[0] + 10, currentPoint[1] - 10])
           }
         }
@@ -158,6 +179,7 @@ function App() {
         setTotalLength(0)
         setAzimuths([])
         setDistances([])
+        setAngles([])
       }
       if (overlay) {
         overlay.setPosition(undefined)
@@ -168,7 +190,6 @@ function App() {
   const enableEditing = () => {
     if (mapRef.current) {
       if (isEditing) {
-        // Disable editing
         if (selectRef.current) {
           mapRef.current.removeInteraction(selectRef.current)
           selectRef.current = null
@@ -187,6 +208,7 @@ function App() {
           let totalLen = 0
           const newAzimuths: string[][] = []
           const newDistances: string[][] = []
+          const newAngles: string[][] = []
 
           features.forEach((feature) => {
             const geometry = feature.getGeometry()
@@ -194,23 +216,38 @@ function App() {
               const coordinates: Coordinate[] = geometry.getCoordinates()
               const azimuthsList: string[] = []
               const distancesList: string[] = []
+              const anglesList: string[] = []
               for (let i = 0; i < coordinates.length - 1; i++) {
                 const azimuth = calculateAzimuth(coordinates[i], coordinates[i + 1])
                 const distance = calculateDistance(coordinates[i], coordinates[i + 1]) / 1000
                 azimuthsList.push(azimuth)
-                distancesList.push(`${distance.toFixed(2)} km`)
+                distancesList.push(
+                  `${convertDistance(distance).toFixed(2)} ${useMiles ? 'miles' : 'km'}`
+                )
+                if (i > 0) {
+                  const angle = calculateAngle(
+                    coordinates[i - 1],
+                    coordinates[i],
+                    coordinates[i + 1]
+                  )
+                  anglesList.push(`${convertAngle(angle).toFixed(2)}${useRadians ? ' rad' : '°'}`)
+                } else {
+                  anglesList.push('N/A')
+                }
               }
               newAzimuths.push(azimuthsList)
               newDistances.push(distancesList)
+              newAngles.push(anglesList)
 
               const length = getLength(geometry)
-              totalLen += length
+              totalLen += convertDistance(length / 1000)
             }
           })
 
           setTotalLength(totalLen / 1000)
           setAzimuths(newAzimuths)
           setDistances(newDistances)
+          setAngles(newAngles)
         })
 
         mapRef.current.addInteraction(select)
@@ -223,11 +260,24 @@ function App() {
     }
   }
 
+  const convertDistance = (distance: number) => {
+    return useMiles ? distance * 0.621371 : distance
+  }
+
+  const convertAngle = (angle: number) => {
+    return useRadians ? angle * (Math.PI / 180) : angle
+  }
+
   return (
     <>
       <MapLayer />
       {totalLength ? (
-        <ResultsContainer totalLength={totalLength} azimuths={azimuths} distances={distances} />
+        <ResultsContainer
+          totalLength={totalLength}
+          azimuths={azimuths}
+          distances={distances}
+          angles={angles}
+        />
       ) : null}
       <ButtonContainer
         startDrawing={startDrawing}
@@ -235,6 +285,23 @@ function App() {
         enableEditing={enableEditing}
         isEditing={isEditing}
       />
+      <div
+        style={{
+          position: 'absolute',
+          bottom: '10px',
+          right: '10px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '5px'
+        }}
+      >
+        <button onClick={() => setUseMiles(!useMiles)}>
+          Toggle Distance: {useMiles ? 'Miles' : 'Kilometers'}
+        </button>
+        <button onClick={() => setUseRadians(!useRadians)}>
+          Toggle Angle: {useRadians ? 'Radians' : 'Degrees'}
+        </button>
+      </div>
     </>
   )
 }

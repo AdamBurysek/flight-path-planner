@@ -4,12 +4,14 @@ type ResultsContainerProps = {
   totalLength: number
   azimuths: string[][]
   distances: string[][]
+  angles: string[][]
 }
 
 const ResultsContainer: React.FC<ResultsContainerProps> = ({
   totalLength,
   azimuths,
-  distances
+  distances,
+  angles
 }) => {
   return (
     <>
@@ -33,7 +35,7 @@ const ResultsContainer: React.FC<ResultsContainerProps> = ({
           padding: '5px'
         }}
       >
-        Azimuths and Distances:
+        Azimuths, Distances, and Angles:
         {azimuths.map((azimuthList, lineIndex) => (
           <div key={lineIndex}>
             <strong>Line {lineIndex + 1}:</strong>
@@ -41,7 +43,7 @@ const ResultsContainer: React.FC<ResultsContainerProps> = ({
               {azimuthList.map((azimuth, segmentIndex) => (
                 <li key={segmentIndex}>
                   Segment {segmentIndex + 1}: Azimuth: {azimuth}, Distance:{' '}
-                  {distances[lineIndex][segmentIndex]}
+                  {distances[lineIndex][segmentIndex]}, Angle: {angles[lineIndex][segmentIndex]}
                 </li>
               ))}
             </ul>

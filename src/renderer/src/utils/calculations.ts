@@ -31,3 +31,14 @@ export const calculateDistance = (start: Coordinate, end: Coordinate): number =>
   const [lon2, lat2] = toLonLat(end)
   return getDistance([lon1, lat1], [lon2, lat2])
 }
+
+export const calculateAngle = (point1: Coordinate, point2: Coordinate, point3: Coordinate) => {
+  const angle1 = Math.atan2(point2[1] - point1[1], point2[0] - point1[0])
+  const angle2 = Math.atan2(point3[1] - point2[1], point3[0] - point2[0])
+  let angle = ((angle2 - angle1) * 180) / Math.PI
+  angle = Math.abs(angle)
+  if (angle > 180) {
+    angle = 360 - angle
+  }
+  return angle
+}

@@ -20,26 +20,10 @@ const ResultsContainer: React.FC<ResultsContainerProps> = ({
 }) => {
   return (
     <>
-      <div
-        style={{
-          position: 'absolute',
-          top: '10px',
-          right: '10px',
-          background: 'white',
-          padding: '5px'
-        }}
-      >
+      <div className="total-length-container">
         Total Length: {totalLength.toFixed(2)} {useMiles ? 'miles' : 'km'}
       </div>
-      <div
-        style={{
-          position: 'absolute',
-          top: '50px',
-          right: '10px',
-          background: 'white',
-          padding: '5px'
-        }}
-      >
+      <div className="results-container">
         Azimuths, Distances, and Turn Angles:
         {azimuths.map((azimuthList, lineIndex) => (
           <div key={lineIndex}>

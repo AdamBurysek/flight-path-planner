@@ -1,0 +1,41 @@
+.button-container {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  display: flex;
+  flex-direction: row;
+  gap: 3px;
+}
+
+.button-container button {
+  font-weight: 400;
+  width: 100px;
+  height: 25px;
+  color: var(--color-black);
+  border: 1px solid var(--color-black);
+  border-radius: 5px;
+  transition: 0.15s;
+  background: white;
+}
+
+.stop-drawing-button {
+  background: #6bb0ff !important;
+}
+
+.start-drawing-button:hover,
+.stop-drawing-button:hover {
+  background: #a9d1ff !important;
+}
+
+.editing-button-active {
+  background: rgb(64, 185, 135) !important;
+}
+
+.editing-button:hover,
+.editing-button-active:hover {
+  background: rgb(108, 167, 143) !important;
+}
+
+.clear-button:hover {
+  background: rgb(255, 92, 92);
+}

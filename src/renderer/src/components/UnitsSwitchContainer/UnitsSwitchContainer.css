@@ -1,0 +1,23 @@
+.units-switch-container {
+  position: absolute;
+  top: 10px;
+  left: 40px;
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+}
+
+.units-switch-container button {
+  font-size: 0.8rem;
+  color: var(--color-black);
+  width: 150px;
+  height: 20px;
+  background-color: rgba(255, 255, 255, 0);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: none;
+}
+
+.units-switch-container button:hover {
+  background-color: rgba(255, 255, 255, 100);
+}

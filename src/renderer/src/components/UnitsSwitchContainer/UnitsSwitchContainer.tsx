@@ -1,4 +1,5 @@
 import React from 'react'
+import './UnitsSwitchContainer.css'
 
 type UnitsSwitchContainerProps = {
   useMiles: boolean
@@ -14,17 +15,7 @@ const UnitsSwitchContainer: React.FC<UnitsSwitchContainerProps> = ({
   setUseRadians
 }) => {
   return (
-    <div
-      style={{
-        position: 'absolute',
-        top: '10px',
-        left: '40px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '1px',
-        width: '150px'
-      }}
-    >
+    <div className="units-switch-container">
       <button onClick={() => setUseMiles(!useMiles)}>
         Distance: {useMiles ? 'Miles' : 'Kilometers'}
       </button>

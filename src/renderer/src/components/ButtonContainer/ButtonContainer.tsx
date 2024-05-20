@@ -1,4 +1,5 @@
 import React from 'react'
+import './ButtonContainer.css'
 
 type ButtonContainerProps = {
   startDrawing: () => void
@@ -20,25 +21,27 @@ const ButtonContainer: React.FC<ButtonContainerProps> = ({
   totalLength
 }) => {
   return (
-    <div
-      style={{
-        position: 'absolute',
-        bottom: '10px',
-        left: '10px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '5px'
-      }}
-    >
+    <div className="button-container">
       {isDrawing ? (
-        <button onClick={stopDrawing}>Stop Drawing</button>
+        <button onClick={stopDrawing} className="stop-drawing-button">
+          Draw
+        </button>
       ) : (
-        <button onClick={startDrawing}>Start Drawing</button>
+        <button onClick={startDrawing} className="start-drawing-button">
+          Draw
+        </button>
       )}
-      <button onClick={enableEditing} style={{ backgroundColor: isEditing ? 'green' : 'white' }}>
+      <button
+        onClick={enableEditing}
+        className={isEditing ? 'editing-button-active' : 'editing-button'}
+      >
         Edit
       </button>
-      {totalLength ? <button onClick={clearDrawing}>Clear</button> : null}
+      {totalLength ? (
+        <button onClick={clearDrawing} className="clear-button">
+          Clear All
+        </button>
+      ) : null}
     </div>
   )
 }

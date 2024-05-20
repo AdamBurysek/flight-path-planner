@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import Map from 'ol/Map'
 import View from 'ol/View'
 import TileLayer from 'ol/layer/Tile'
+import ScaleLine from 'ol/control/ScaleLine'
+import { defaults as defaultControls } from 'ol/control'
 import XYZ from 'ol/source/XYZ'
 import 'ol/ol.css'
 import { fromLonLat } from 'ol/proj'
@@ -30,6 +32,7 @@ function App() {
   const drawRef = useRef<Draw | null>(null)
   const modifyRef = useRef<Modify | null>(null)
   const selectRef = useRef<Select | null>(null)
+  const scaleLineControlRef = useRef<ScaleLine | null>(null)
   const vectorSourceRef = useRef<VectorSource | null>(null)
   const [totalLengthKm, setTotalLengthKm] = useState<number>(0)
   const [totalLengthMiles, setTotalLengthMiles] = useState<number>(0)
@@ -59,6 +62,13 @@ function App() {
       })
     })
 
+    const scaleLineControl = new ScaleLine({
+      units: 'metric',
+      className: 'scale-line'
+    })
+
+    scaleLineControlRef.current = scaleLineControl
+
     const map = new Map({
       target: 'map',
       layers: [
@@ -70,9 +80,10 @@ function App() {
         vectorLayer
       ],
       view: new View({
-        center: fromLonLat([16.6068, 49.1951]),
+        center: fromLonLat([14.42076, 50.08804]), // Coordinates for Prague, Czech Republic
         zoom: 12
-      })
+      }),
+      controls: defaultControls().extend([scaleLineControl])
     })
 
     const overlayElement = document.createElement('div')
@@ -95,6 +106,12 @@ function App() {
       }
     }
   }, [])
+
+  useEffect(() => {
+    if (scaleLineControlRef.current) {
+      scaleLineControlRef.current.setUnits(useMiles ? 'imperial' : 'metric')
+    }
+  }, [useMiles])
 
   const startDrawing = () => {
     if (mapRef.current && !drawRef.current) {

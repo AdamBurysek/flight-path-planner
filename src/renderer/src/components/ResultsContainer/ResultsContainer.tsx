@@ -40,7 +40,7 @@ const ResultsContainer: React.FC<ResultsContainerProps> = ({
           padding: '5px'
         }}
       >
-        Azimuths, Distances, and Angles:
+        Azimuths, Distances, and Turn Angles:
         {azimuths.map((azimuthList, lineIndex) => (
           <div key={lineIndex}>
             <strong>
@@ -58,7 +58,8 @@ const ResultsContainer: React.FC<ResultsContainerProps> = ({
                     Delete
                   </button>
                   Segment {segmentIndex + 1}: Azimuth: {azimuth}, Distance:{' '}
-                  {distances[lineIndex][segmentIndex]}, Angle: {angles[lineIndex][segmentIndex]}
+                  {distances[lineIndex][segmentIndex]}, Turn Angle:{' '}
+                  {angles[lineIndex][segmentIndex]}
                 </li>
               ))}
             </ul>

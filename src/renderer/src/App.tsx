@@ -258,7 +258,6 @@ function App() {
 
         modify.on('modifyend', () => {
           const features = vectorSourceRef.current!.getFeatures()
-          console.log(features)
           let totalLenKm = 0
           let totalLenMiles = 0
           const newAzimuths: string[][] = []

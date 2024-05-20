@@ -1,5 +1,5 @@
 appId: com.electron.app
-productName: vr-app
+productName: flight-path-planner
 directories:
   buildResources: build
 files:
@@ -12,7 +12,7 @@ files:
 asarUnpack:
   - resources/**
 win:
-  executableName: vr-app
+  executableName: flight-path-planner
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}

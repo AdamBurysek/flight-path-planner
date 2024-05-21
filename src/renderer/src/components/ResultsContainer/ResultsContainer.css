@@ -7,6 +7,7 @@
   background: white;
   color: var(--color-black);
   border-radius: 5px;
+  cursor: default;
 }
 
 .results-container {
@@ -31,6 +32,7 @@
 
 .segment-item:hover .delete-button {
   display: inline-block;
+  cursor: pointer;
 }
 
 .segment-item .delete-button:hover {

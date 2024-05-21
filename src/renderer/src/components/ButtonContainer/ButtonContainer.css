@@ -24,7 +24,7 @@
 
 .start-drawing-button:hover,
 .stop-drawing-button:hover {
-  background: #a9d1ff !important;
+  background: #a9d1ff;
 }
 
 .editing-button-active {
@@ -33,7 +33,7 @@
 
 .editing-button:hover,
 .editing-button-active:hover {
-  background: rgb(108, 167, 143) !important;
+  background: rgb(108, 167, 143);
 }
 
 .clear-button:hover {

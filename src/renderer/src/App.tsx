@@ -10,7 +10,6 @@ import { fromLonLat } from 'ol/proj'
 import { Draw, Modify, Select } from 'ol/interaction'
 import VectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
-
 import { getLength } from 'ol/sphere'
 import LineString from 'ol/geom/LineString'
 import Overlay from 'ol/Overlay'
@@ -27,6 +26,9 @@ import ResultsContainer from './components/ResultsContainer/ResultsContainer'
 import MapLayer from './components/MapLayer/MapLayer'
 import UnitsSwitchContainer from './components/UnitsSwitchContainer/UnitsSwitchContainer'
 import { Stroke, Style } from 'ol/style'
+import { Feature } from 'ol'
+import Point from 'ol/geom/Point'
+import { Circle as CircleStyle, Fill } from 'ol/style'
 
 function App() {
   const mapRef = useRef<Map | null>(null)
@@ -48,6 +50,7 @@ function App() {
   const [overlay, setOverlay] = useState<Overlay | null>(null)
   const [useMiles, setUseMiles] = useState<boolean>(false)
   const [useRadians, setUseRadians] = useState<boolean>(false)
+  const [highlightedFeature, setHighlightedFeature] = useState<Feature | null>(null)
 
   useEffect(() => {
     const vectorSource = new VectorSource()
@@ -370,6 +373,7 @@ function App() {
     }
 
     updateStateFromFeatures()
+    removeHighlightFeature()
   }
 
   const updateStateFromFeatures = () => {
@@ -452,9 +456,38 @@ function App() {
     if (segmentIndex < 0 || segmentIndex >= coordinates.length - 1) return
 
     const targetCoordinate = coordinates[segmentIndex + 1]
-    console.log(targetCoordinate) // Log the coordinate of segment + 1
+
+    if (highlightedFeature) {
+      vectorSourceRef.current.removeFeature(highlightedFeature)
+    }
+
+    const point = new Point(targetCoordinate)
+    const feature = new Feature(point)
+
+    const style = new Style({
+      image: new CircleStyle({
+        radius: 10,
+        fill: new Fill({ color: 'red' }),
+        stroke: new Stroke({
+          color: 'red',
+          width: 2
+        })
+      })
+    })
+
+    feature.setStyle(style)
+
+    vectorSourceRef.current?.addFeature(feature)
+
+    setHighlightedFeature(feature)
   }
 
+  const removeHighlightFeature = () => {
+    if (highlightedFeature) {
+      vectorSourceRef.current?.removeFeature(highlightedFeature)
+      setHighlightedFeature(null)
+    }
+  }
   return (
     <>
       <MapLayer />
@@ -467,6 +500,7 @@ function App() {
           useMiles={useMiles}
           onDeleteSegment={deleteSegment}
           onHoverSegment={highlightFeature}
+          onLeaveSegment={removeHighlightFeature}
         />
       ) : null}
       <ButtonContainer

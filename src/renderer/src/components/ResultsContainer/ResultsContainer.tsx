@@ -8,7 +8,8 @@ type ResultsContainerProps = {
   angles: string[][]
   useMiles: boolean
   onDeleteSegment: (lineIndex: number, segmentIndex: number) => void
-  onHoverSegment: (lineIndex: number, segmentIndex: number) => void // Add this line
+  onHoverSegment: (lineIndex: number, segmentIndex: number) => void
+  onLeaveSegment: () => void
 }
 
 const ResultsContainer: React.FC<ResultsContainerProps> = ({
@@ -18,13 +19,9 @@ const ResultsContainer: React.FC<ResultsContainerProps> = ({
   angles,
   useMiles,
   onDeleteSegment,
-  onHoverSegment // Add this line
+  onHoverSegment,
+  onLeaveSegment
 }) => {
-  const handleMouseEnter = (lineIndex: number, segmentIndex: number) => {
-    console.log(`Line: ${lineIndex}, Segment: ${segmentIndex}`)
-    onHoverSegment(lineIndex, segmentIndex) // Call this function on hover
-  }
-
   return (
     <>
       <div className="total-length-container">
@@ -44,7 +41,8 @@ const ResultsContainer: React.FC<ResultsContainerProps> = ({
                 <li
                   key={segmentIndex}
                   className="segment-item"
-                  onMouseEnter={() => handleMouseEnter(lineIndex, segmentIndex)}
+                  onMouseEnter={() => onHoverSegment(lineIndex, segmentIndex)}
+                  onMouseLeave={onLeaveSegment}
                 >
                   <button
                     className="delete-button"

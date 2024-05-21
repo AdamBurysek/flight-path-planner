@@ -64,3 +64,5 @@ $ npm run build
 ## License
 
 This project is licensed under the MIT License. See the LICENSE file for details.
+
+<img width="1440" alt="FlightPath_Planner_banner" src="https://github.com/AdamBurysek/flight-path-planner/assets/114564710/79bd1fc5-26b3-4e9c-bf5f-3d02bf73ac80">

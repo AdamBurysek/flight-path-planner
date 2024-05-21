@@ -10,7 +10,7 @@ import { fromLonLat } from 'ol/proj'
 import { Draw, Modify, Select } from 'ol/interaction'
 import VectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
-import { Style, Stroke } from 'ol/style'
+
 import { getLength } from 'ol/sphere'
 import LineString from 'ol/geom/LineString'
 import Overlay from 'ol/Overlay'
@@ -26,6 +26,7 @@ import ButtonContainer from './components/ButtonContainer/ButtonContainer'
 import ResultsContainer from './components/ResultsContainer/ResultsContainer'
 import MapLayer from './components/MapLayer/MapLayer'
 import UnitsSwitchContainer from './components/UnitsSwitchContainer/UnitsSwitchContainer'
+import { Stroke, Style } from 'ol/style'
 
 function App() {
   const mapRef = useRef<Map | null>(null)
@@ -275,6 +276,7 @@ function App() {
 
         modify.on('modifyend', () => {
           const features = vectorSourceRef.current!.getFeatures()
+          console.log(features)
           let totalLenKm = 0
           let totalLenMiles = 0
           const newAzimuths: string[][] = []
@@ -438,6 +440,21 @@ function App() {
     setAnglesRad(newAnglesRad)
   }
 
+  const highlightFeature = (lineIndex: number, segmentIndex: number) => {
+    if (!vectorSourceRef.current) return
+
+    const features = vectorSourceRef.current.getFeatures()
+    if (lineIndex < 0 || lineIndex >= features.length) return
+
+    const geometry = features[lineIndex].getGeometry() as LineString
+    const coordinates = geometry.getCoordinates()
+
+    if (segmentIndex < 0 || segmentIndex >= coordinates.length - 1) return
+
+    const targetCoordinate = coordinates[segmentIndex + 1]
+    console.log(targetCoordinate) // Log the coordinate of segment + 1
+  }
+
   return (
     <>
       <MapLayer />
@@ -449,6 +466,7 @@ function App() {
           angles={useRadians ? anglesRad : anglesDeg}
           useMiles={useMiles}
           onDeleteSegment={deleteSegment}
+          onHoverSegment={highlightFeature}
         />
       ) : null}
       <ButtonContainer

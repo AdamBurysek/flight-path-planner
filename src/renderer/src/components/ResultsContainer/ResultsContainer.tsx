@@ -8,6 +8,7 @@ type ResultsContainerProps = {
   angles: string[][]
   useMiles: boolean
   onDeleteSegment: (lineIndex: number, segmentIndex: number) => void
+  onHoverSegment: (lineIndex: number, segmentIndex: number) => void // Add this line
 }
 
 const ResultsContainer: React.FC<ResultsContainerProps> = ({
@@ -16,8 +17,14 @@ const ResultsContainer: React.FC<ResultsContainerProps> = ({
   distances,
   angles,
   useMiles,
-  onDeleteSegment
+  onDeleteSegment,
+  onHoverSegment // Add this line
 }) => {
+  const handleMouseEnter = (lineIndex: number, segmentIndex: number) => {
+    console.log(`Line: ${lineIndex}, Segment: ${segmentIndex}`)
+    onHoverSegment(lineIndex, segmentIndex) // Call this function on hover
+  }
+
   return (
     <>
       <div className="total-length-container">
@@ -34,7 +41,11 @@ const ResultsContainer: React.FC<ResultsContainerProps> = ({
             </strong>
             <ul>
               {azimuthList.map((azimuth, segmentIndex) => (
-                <li key={segmentIndex} className="segment-item">
+                <li
+                  key={segmentIndex}
+                  className="segment-item"
+                  onMouseEnter={() => handleMouseEnter(lineIndex, segmentIndex)}
+                >
                   <button
                     className="delete-button"
                     onClick={() => onDeleteSegment(lineIndex, segmentIndex)}

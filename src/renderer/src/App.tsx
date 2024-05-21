@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+
 import Map from 'ol/Map'
 import View from 'ol/View'
 import TileLayer from 'ol/layer/Tile'
@@ -14,6 +15,12 @@ import { getLength } from 'ol/sphere'
 import LineString from 'ol/geom/LineString'
 import Overlay from 'ol/Overlay'
 import { Coordinate } from 'ol/coordinate'
+
+import { Stroke, Style } from 'ol/style'
+import { Feature } from 'ol'
+import Point from 'ol/geom/Point'
+import { Circle as CircleStyle, Fill } from 'ol/style'
+
 import {
   calculateAzimuth,
   calculateDistance,
@@ -21,14 +28,11 @@ import {
   convertDistanceToMiles,
   convertAngleToRadians
 } from './utils/calculations'
+
 import ButtonContainer from './components/ButtonContainer/ButtonContainer'
 import ResultsContainer from './components/ResultsContainer/ResultsContainer'
 import MapLayer from './components/MapLayer/MapLayer'
 import UnitsSwitchContainer from './components/UnitsSwitchContainer/UnitsSwitchContainer'
-import { Stroke, Style } from 'ol/style'
-import { Feature } from 'ol'
-import Point from 'ol/geom/Point'
-import { Circle as CircleStyle, Fill } from 'ol/style'
 
 function App() {
   const mapRef = useRef<Map | null>(null)
@@ -84,7 +88,7 @@ function App() {
         vectorLayer
       ],
       view: new View({
-        center: fromLonLat([16.62, 49.19]), // Coordinates for Prague, Czech Republic
+        center: fromLonLat([16.62, 49.19]), // Coordinates for Brno, Czech Republic
         zoom: 12
       }),
       controls: defaultControls().extend([scaleLineControl])

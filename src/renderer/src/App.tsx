@@ -80,7 +80,7 @@ function App() {
         vectorLayer
       ],
       view: new View({
-        center: fromLonLat([14.42076, 50.08804]), // Coordinates for Prague, Czech Republic
+        center: fromLonLat([16.62, 49.19]), // Coordinates for Prague, Czech Republic
         zoom: 12
       }),
       controls: defaultControls().extend([scaleLineControl])

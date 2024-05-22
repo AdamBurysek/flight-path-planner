@@ -16,12 +16,14 @@
 
 .segment-item {
   position: relative;
+  display: flex;
+  align-items: center;
   padding-left: 60px;
 }
 
 .segment-item .delete-button {
-  display: none;
   position: absolute;
+  color: var(--color-black);
   left: 0;
   width: 55px;
   text-align: center;
@@ -30,11 +32,17 @@
   border-radius: 5px;
 }
 
-.segment-item:hover .delete-button {
-  display: inline-block;
-  cursor: pointer;
-}
+@media (hover: hover) and (pointer: fine) {
+  .segment-item .delete-button:hover {
+    background-color: rgb(255, 159, 159) !important;
+  }
 
-.segment-item .delete-button:hover {
-  background-color: rgb(255, 159, 159) !important;
+  .segment-item .delete-button {
+    display: none;
+  }
+
+  .segment-item:hover .delete-button {
+    display: inline-block;
+    cursor: pointer;
+  }
 }

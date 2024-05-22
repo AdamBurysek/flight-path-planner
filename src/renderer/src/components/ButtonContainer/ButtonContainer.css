@@ -22,20 +22,22 @@
   background: #6bb0ff !important;
 }
 
-.start-drawing-button:hover,
-.stop-drawing-button:hover {
-  background: #a9d1ff;
-}
-
 .editing-button-active {
   background: rgb(64, 185, 135) !important;
 }
 
-.editing-button:hover,
-.editing-button-active:hover {
-  background: rgb(108, 167, 143);
-}
+@media (hover: hover) and (pointer: fine) {
+  .start-drawing-button:hover,
+  .stop-drawing-button:hover {
+    background: #a9d1ff;
+  }
 
-.clear-button:hover {
-  background: rgb(255, 92, 92);
+  .editing-button:hover,
+  .editing-button-active:hover {
+    background: rgb(108, 167, 143);
+  }
+
+  .clear-button:hover {
+    background: rgb(255, 92, 92);
+  }
 }

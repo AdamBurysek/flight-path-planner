@@ -46,7 +46,11 @@ const ResultsContainer: React.FC<ResultsContainerProps> = ({
                 >
                   <button
                     className="delete-button"
-                    onClick={() => onDeleteSegment(lineIndex, segmentIndex)}
+                    onClick={() => {
+                      onDeleteSegment(lineIndex, segmentIndex)
+                      onHoverSegment(lineIndex, segmentIndex)
+                    }}
+                    onTouchStart={onLeaveSegment}
                   >
                     Delete
                   </button>

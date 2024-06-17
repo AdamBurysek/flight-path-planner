@@ -1,5 +1,8 @@
 # Flight Path Planner
 
+<img width="1440" alt="FlightPath_Planner_banner" src="https://github.com/AdamBurysek/flight-path-planner/assets/114564710/b096839f-0e1c-4b80-9fd6-c2453f0617b4">
+
+
 An Electron application built with React and TypeScript for planning flight paths.
 
 ## Project Setup
